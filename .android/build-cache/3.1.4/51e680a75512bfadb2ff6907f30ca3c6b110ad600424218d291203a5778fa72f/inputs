@@ -1,0 +1,10 @@
+COMMAND=PREDEX_LIBRARY_TO_DEX_ARCHIVE
+FILE.path=/fs03/share/users/mathieu.porretta/home/.gradle/caches/transforms-1/files-1.1/support-vector-drawable-27.1.1.aar/985cecda3e64d4bc90ed7273be2af16e/jars/classes.jar
+FILE.hash=c254e2d4c7a825a09bfa7b75d8aa52172c0a58754e08e2cf66aaed60b07b6e7a
+DX_VERSION=1.16
+JUMBO_MODE=true
+OPTIMIZE=true
+DEXER_TOOL=D8
+CACHE_KEY_VERSION=4
+MIN_SDK_VERSION=19
+IS_DEBUGGABLE=true
