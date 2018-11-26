@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Switch;
@@ -42,15 +43,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Switch switchPlayer;
 
     private EditText textInput;
+    private EditText ipInput;
+    private EditText portInput;
     private String message;
 
-    private static final String IP = "192.168.2.208";
+    String ip;
+    int port;
+
+    private static final String IP = "192.168.2.101";
     private static final int PORT = 10000;
     private InetAddress address;
     private DatagramSocket UDPSocket;
 
     public MainActivity(){
         this.message="";
+        this.ip = IP;
+        this.port = PORT;
     }
 
     @Override
@@ -71,6 +79,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         this.switchPlayer = findViewById(R.id.switch_player);
 
         this.textInput = findViewById(R.id.main_text_input);
+        this.ipInput = findViewById(R.id.text_input_ip);
+        this.ipInput.setText(this.ip);
+        this.portInput = findViewById(R.id.text_input_port);
+        this.portInput.setText(this.port+"");
 
         findViewById(R.id.main_button).setOnClickListener(new View.OnClickListener(){
             @Override
@@ -82,7 +94,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         });
 
-//        (new MessageReceiver()).execute();
+        findViewById(R.id.button_valid_host).setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                ip = ipInput.getText().toString();
+                port = Integer.parseInt(portInput.getText().toString());
+                initNetwork(ip, port);
+                vibrate();
+            }
+        });
+
     }
 
     protected void sendNetworkMessage(final String str){
@@ -90,7 +111,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             public void run(){
                 try {
                     byte[] data = str.getBytes();
-                    DatagramPacket packet = new DatagramPacket(data, data.length, address, PORT);
+                    DatagramPacket packet = new DatagramPacket(data, data.length, address, port);
                     UDPSocket.send(packet);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -113,16 +134,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         this.sensorManager.registerListener(this, proximity, SensorManager.SENSOR_DELAY_UI);
 
         // init network
+        this.initNetwork(ip, port);
+
+    }
+
+    private void initNetwork(String ip, int port){
         try {
-            this.UDPSocket = new DatagramSocket(PORT);
-            this.address = InetAddress.getByName(IP);
+            this.UDPSocket = new DatagramSocket(port);
+            this.address = InetAddress.getByName(ip);
+            (new MessageReceiver()).execute();
 
         } catch (SocketException e) {
             e.printStackTrace();
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
-
     }
 
 
@@ -190,34 +216,34 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
-//    private class MessageReceiver extends AsyncTask<Void, byte[], Void>{
-//        protected Void doInBackground(Void... rien){
-//            while(true){
-//                byte[] data = new byte[1024];
-//                DatagramPacket packet = new DatagramPacket(data, data.length);
-//                try {
-//                    UDPSocket.receive(packet);
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//                int size = packet.getLength();
-//                publishProgress(java.util.Arrays.copyOf(data, size));
-//            }
-//        }
-//
-//        protected void onProgressUpdate(byte[]... data){
-//            System.out.println("LOL BONJOUR DEBUG : "+data);
-////            String message = new String(data[0], StandardCharsets.UTF_8);
-//            if(data[0].equals("(1)")){
-//                vibrate();
-//            }else if(data[0].equals("(0)")){
-//
-//            }
-//        }
-//    }
+    private void notif(String message){
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+    }
 
+    private class MessageReceiver extends AsyncTask<Void, byte[], Void>{
+        protected Void doInBackground(Void... rien){
+            while(true){
+                byte[] data = new byte[1024];
+                DatagramPacket packet = new DatagramPacket(data, data.length);
+                try {
+                    UDPSocket.receive(packet);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                int size = packet.getLength();
+                publishProgress(java.util.Arrays.copyOf(data, size));
+            }
+        }
 
-//    private class ReceiverTask extends AsyncTask<Void byte[], Void>{
-//
-//    }
+        protected void onProgressUpdate(byte[]... data){
+            String message = new String(data[0], StandardCharsets.UTF_8);
+            System.out.println("LOL BONJOUR DEBUG : "+message);
+            if(message.equals("(1)")){
+                vibrate();
+            }else if(message.equals("(0)")){
+                notif("T'as perdu lol");
+            }
+        }
+    }
+
 }

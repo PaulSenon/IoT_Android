@@ -5,4 +5,5 @@
     <color name="colorAccent">#FF4081</color>
     <color name="feedback_default">#ffffff</color>
     <color name="feedback_accent">#207406</color>
+    <color name="feedback_dash_tk">#b60e17</color>
 </resources>
