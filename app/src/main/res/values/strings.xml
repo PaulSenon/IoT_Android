@@ -1,9 +1,9 @@
 <resources>
-    <string name="app_name">"Today's Program"</string>
-    <string name="text_1">"Hot photo shoot at:"</string>
-    <string name="text_2">"Zevent"</string>
-    <string name="text_3">"Webedia"</string>
-    <string name="text_4">"Rito Game"</string>
-    <string name="text_5">"C'est Tipar"</string>
-    <string name="bt_click_message">"J'adore les ris de veau !"</string>
+    <string name="app_name">"IoT weather app"</string>
+    <string name="text_1">"none"</string>
+    <string name="text_2">"none"</string>
+    <string name="text_3">"none"</string>
+    <string name="text_4">"none"</string>
+    <string name="text_5">"Send debug"</string>
+    <string name="bt_click_message">"sent"</string>
 </resources>

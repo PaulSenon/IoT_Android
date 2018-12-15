@@ -22,6 +22,9 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -30,17 +33,10 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener {
-    private SensorManager sensorManager;
-    private Sensor accelerometer;
-    private Sensor proximity;
-
-    private TextView textSensorX;
-    private TextView textSensorY;
-    private TextView textSensorZ;
-    private TextView textMain;
-    private ImageView feedBackSit;
-    private Switch switchPlayer;
+public class MainActivity extends AppCompatActivity {
+    private TextView textTemp;
+    private TextView textHum;
+    private TextView textlum;
 
     private EditText textInput;
     private EditText ipInput;
@@ -50,8 +46,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     String ip;
     int port;
 
-    private static final String IP = "192.168.2.101";
-    private static final int PORT = 10000;
+    private static final String IP = "192.168.2.208";
+    private static final int PORT = 3000;
+    private static final int SALT = 1567464;
     private InetAddress address;
     private DatagramSocket UDPSocket;
 
@@ -66,17 +63,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        this.sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
-        this.accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        this.proximity = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
-
-        this.textMain = findViewById(R.id.main_text);
-        this.textSensorX = findViewById(R.id.text_sensor_output_x);
-        this.textSensorY = findViewById(R.id.text_sensor_output_y);
-        this.textSensorZ = findViewById(R.id.text_sensor_output_z);
-        this.feedBackSit = findViewById(R.id.green_feedback);
-        this.feedBackSit.setImageResource(R.color.feedback_default);
-        this.switchPlayer = findViewById(R.id.switch_player);
+        this.textTemp = findViewById(R.id.text_temperature);
+        this.textHum = findViewById(R.id.text_humidity);
+        this.textlum = findViewById(R.id.text_luminosity);
 
         this.textInput = findViewById(R.id.main_text_input);
         this.ipInput = findViewById(R.id.text_input_ip);
@@ -87,10 +76,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         findViewById(R.id.main_button).setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                textMain.setText(R.string.bt_click_message);
                 message = textInput.getText().toString();
                 sendNetworkMessage(message);
-                vibrate();
             }
         });
 
@@ -100,7 +87,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 ip = ipInput.getText().toString();
                 port = Integer.parseInt(portInput.getText().toString());
                 initNetwork(ip, port);
-                vibrate();
             }
         });
 
@@ -124,18 +110,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onPause() {
         super.onPause();
-        this.sensorManager.unregisterListener(this);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        this.sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
-        this.sensorManager.registerListener(this, proximity, SensorManager.SENSOR_DELAY_UI);
 
         // init network
         this.initNetwork(ip, port);
-
     }
 
     private void initNetwork(String ip, int port){
@@ -151,73 +133,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-
-    private static final int SHAKE_THRESHOLD = 800;
-    float last_x;
-    float last_y;
-    float last_z;
-    float x;
-    float y;
-    float z;
-    long lastUpdate;
-    long diffTime;
-
-
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        float[] values = event.values;
-        if(event.sensor.getType()==Sensor.TYPE_ACCELEROMETER){
-            this.textSensorX.setText(values[0]+"");
-            this.textSensorY.setText(values[1]+"");
-            this.textSensorZ.setText(values[2]+"");
-
-            long curTime = System.currentTimeMillis();
-            // only allow one update every 100ms.
-            if ((curTime - lastUpdate) > 100) {
-                diffTime = (curTime - lastUpdate);
-                lastUpdate = curTime;
-
-                x = values[SensorManager.DATA_X];
-                y = values[SensorManager.DATA_Y];
-                z = values[SensorManager.DATA_Z];
-
-                float speed = Math.abs(x+y+z - last_x - last_y - last_z) / diffTime * 10000;
-
-                if (speed > SHAKE_THRESHOLD) {
-                    this.feedBackSit.setImageResource(R.color.feedback_accent);
-                    sendNetworkMessage(this.switchPlayer.isChecked()?"(2)":"(1)");
-//                    Log.d("sensor", "shake detected w/ speed: " + speed);
-//                    Toast.makeText(this, "shake detected w/ speed: " + speed, Toast.LENGTH_SHORT).show();
-                }else{
-                    this.feedBackSit.setImageResource(R.color.feedback_default);
-                }
-                last_x = x;
-                last_y = y;
-                last_z = z;
-            }
-        }else{
-            this.textMain.setText(values[0]==0?"ALLO ?!":"oui bonjour");
-        }
-    }
-
-    private void vibrate(){
-        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-// Vibrate for 500 milliseconds
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            v.vibrate(VibrationEffect.createOneShot(1000, VibrationEffect.DEFAULT_AMPLITUDE));
-        } else {
-            //deprecated in API 26
-            v.vibrate(1000);
-        }
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
-    }
-
     private void notif(String message){
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
     private class MessageReceiver extends AsyncTask<Void, byte[], Void>{
@@ -238,10 +155,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         protected void onProgressUpdate(byte[]... data){
             String message = new String(data[0], StandardCharsets.UTF_8);
             System.out.println("LOL BONJOUR DEBUG : "+message);
-            if(message.equals("(1)")){
-                vibrate();
-            }else if(message.equals("(0)")){
-                notif("T'as perdu lol");
+            JSONObject jsonData = null;
+            try {
+                // TODO dégueulasse
+                jsonData = new JSONObject(message);
+                int temp = Integer.parseInt(jsonData.get("temperature").toString());
+                int hum = Integer.parseInt(jsonData.get("humidity").toString());
+                int lum = Integer.parseInt(jsonData.get("luminosity").toString());
+                textTemp.setText("temp : "+(temp/10)+","+(temp%10)+"°C");
+                textHum.setText("hum : "+(hum/10)+","+(hum%10)+"%");
+                textlum.setText("hum : "+lum+" lux");
+            } catch (JSONException e) {
+                notif("invalid response");
+                e.printStackTrace();
             }
         }
     }
