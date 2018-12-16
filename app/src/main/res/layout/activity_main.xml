@@ -90,7 +90,7 @@
         android:id="@+id/main_text_input"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="getValues()"
+        android:text="THL"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintBottom_toTopOf="@id/main_button"/>
@@ -140,5 +140,14 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintLeft_toRightOf="@+id/text_input_port"/>
     </LinearLayout>
+
+    <Button
+        android:id="@+id/button_getValues"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="getValues()"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/inputs_host"/>
 
 </android.support.constraint.ConstraintLayout>

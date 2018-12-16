@@ -81,6 +81,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        findViewById(R.id.button_getValues).setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                message = "getValues()";
+                sendNetworkMessage(message);
+            }
+        });
+
         findViewById(R.id.button_valid_host).setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
@@ -164,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
                 int lum = Integer.parseInt(jsonData.get("luminosity").toString());
                 textTemp.setText("temp : "+(temp/10)+","+(temp%10)+"°C");
                 textHum.setText("hum : "+(hum/10)+","+(hum%10)+"%");
-                textlum.setText("hum : "+lum+" lux");
+                textlum.setText("lum : "+lum+" lux");
             } catch (JSONException e) {
                 notif("invalid response");
                 e.printStackTrace();
